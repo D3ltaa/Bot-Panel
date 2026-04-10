@@ -8,7 +8,7 @@ let app = express()
 app.use(express.static('public'))
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
-
+let port = process.env.Port || 3000
 const OTP = Math.random().toString(36).slice(2, 8).toUpperCase()
 const SESSION_TOKEN = crypto.randomBytes(32).toString('hex')
 console.log(`\n🔑  Panel password: ${OTP}\n`)
@@ -108,7 +108,7 @@ app.get('/api/logs',(_, res)=>{
     })
 })
 
-app.listen(process.env.Port,()=>{
-    console.log(`Server is running on port ${process.env.Port}`)
+app.listen(port,()=>{
+    console.log(`Server is running on port ${port}`)
 })
 

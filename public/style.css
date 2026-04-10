@@ -298,3 +298,17 @@ body {
 
 .toast-error { border-left: 3px solid #f44336; }
 .toast-error iconify-icon { color: #f44336; font-size: 18px; }
+
+.watermark {
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    pointer-events: none;
+    z-index: 9999;
+    white-space: nowrap;
+}

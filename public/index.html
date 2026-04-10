@@ -14,6 +14,9 @@
         .login-card input:focus { border-color:var(--surface); }
         .login-card button { background:#4CAF50; color:#fff; border:none; border-radius:10px; padding:12px; font-size:15px; font-weight:700; font-family:var(--font); cursor:pointer; }
         .login-card button:hover { background:#43a047; }
+        .watermark { position:fixed; bottom:14px; left:50%; transform:translateX(-50%); font-size:12px; font-weight:600; color:var(--text-muted); letter-spacing:0.05em; pointer-events:none; z-index:9999; white-space:nowrap; }
+        .error { display:none; color:#f44336 !important; }
+        .error.visible { display:block; }
     </style>
 </head>
 <body>
@@ -29,5 +32,11 @@
             </form>
         </div>
     </div>
+    <div class="watermark">© Copyrights D3ltaa</div>
+    <script>
+        if (new URLSearchParams(location.search).get('error')) {
+            document.querySelector('.error').classList.add('visible');
+        }
+    </script>
 </body>
 </html>
