@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bot Panel</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 2rem;
+      color: #a78bfa;
+    }
+
+    .card {
+      background: #1a1d2e;
+      border: 1px solid #2d3148;
+      border-radius: 12px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 620px;
+      margin-bottom: 1.25rem;
+    }
+
+    .card h2 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 1rem;
+    }
+
+    /* Status */
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #475569;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .status-dot.online  { background: #22c55e; box-shadow: 0 0 6px #22c55e88; }
+    .status-dot.stopped { background: #ef4444; }
+    .status-dot.errored { background: #f97316; }
+
+    #status-label { font-weight: 600; font-size: 0.95rem; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .stat {
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+    .stat span { display: block; font-size: 1rem; font-weight: 700; color: #e2e8f0; margin-top: 2px; }
+
+    /* Controls */
+    .controls { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button:hover  { opacity: 0.85; }
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    #btn-start  { background: #22c55e; color: #fff; }
+    #btn-stop   { background: #ef4444; color: #fff; }
+    #btn-status { background: #6366f1; color: #fff; }
+    #btn-logs   { background: #0ea5e9; color: #fff; }
+
+    #toast {
+      font-size: 0.8rem;
+      margin-top: 0.75rem;
+      color: #94a3b8;
+      min-height: 1.2em;
+    }
+
+    /* Logs */
+    #log-box {
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.75rem;
+      color: #a3e635;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.6;
+    }
+
+    #log-box:empty::before {
+      content: 'Click "Fetch Logs" to load...';
+      color: #475569;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Bot Panel</h1>
+  <p id="next-refresh" style="font-size:0.75rem;color:#475569;margin-bottom:1.25rem;">Next refresh in 15s</p>
+
+  <!-- Status card -->
+  <div class="card">
+    <h2>Status</h2>
+    <div class="status-row">
+      <div class="status-dot" id="dot"></div>
+      <span id="status-label">Unknown</span>
+    </div>
+    <div class="stats">
+      <div class="stat">Uptime<span id="stat-uptime">—</span></div>
+      <div class="stat">Memory<span id="stat-memory">—</span></div>
+      <div class="stat">CPU<span id="stat-cpu">—</span></div>
+    </div>
+  </div>
+
+  <!-- Controls card -->
+  <div class="card">
+    <h2>Controls</h2>
+    <div class="controls">
+      <button id="btn-start">Start</button>
+      <button id="btn-stop">Stop</button>
+      <button id="btn-status">Refresh Status</button>
+      <button id="btn-logs">Fetch Logs</button>
+    </div>
+    <div id="toast"></div>
+  </div>
+
+  <!-- Logs card -->
+  <div class="card">
+    <h2>Logs (last 50 lines)</h2>
+    <div id="log-box"></div>
+  </div>
+
+  <script>
+    const dot        = document.getElementById('dot')
+    const statusLabel= document.getElementById('status-label')
+    const statUptime = document.getElementById('stat-uptime')
+    const statMemory = document.getElementById('stat-memory')
+    const statCpu    = document.getElementById('stat-cpu')
+    const toast      = document.getElementById('toast')
+    const logBox     = document.getElementById('log-box')
+
+    function setToast(msg, ok = true) {
+      toast.style.color = ok ? '#22c55e' : '#ef4444'
+      toast.textContent = msg
+      setTimeout(() => toast.textContent = '', 4000)
+    }
+
+    function formatUptime(ms) {
+      if (!ms) return '—'
+      const s = Math.floor((Date.now() - ms) / 1000)
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60
+      return h ? `${h}h ${m}m` : m ? `${m}m ${sec}s` : `${sec}s`
+    }
+
+    function formatMemory(bytes) {
+      if (!bytes) return '—'
+      return (bytes / 1024 / 1024).toFixed(1) + ' MB'
+    }
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/status')
+        if (!res.ok) { applyStatus(null); return }
+        const data = await res.json()
+        applyStatus(data)
+      } catch { applyStatus(null) }
+    }
+
+    function applyStatus(data) {
+      dot.className = 'status-dot'
+      if (!data) {
+        statusLabel.textContent = 'Unavailable'
+        statUptime.textContent = statMemory.textContent = statCpu.textContent = '—'
+        return
+      }
+      const s = data.status
+      dot.classList.add(s === 'online' ? 'online' : s === 'stopped' ? 'stopped' : 'errored')
+      statusLabel.textContent = s.charAt(0).toUpperCase() + s.slice(1)
+      statUptime.textContent  = formatUptime(data.uptime)
+      statMemory.textContent  = formatMemory(data.memory)
+      statCpu.textContent     = data.cpu != null ? data.cpu + '%' : '—'
+    }
+
+    async function callApi(url, method = 'POST') {
+      try {
+        const res = await fetch(url, { method })
+        const text = await res.text()
+        setToast(text, res.ok)
+        if (res.ok) fetchStatus()
+      } catch (e) {
+        setToast('Request failed: ' + e.message, false)
+      }
+    }
+
+    async function fetchLogs() {
+      try {
+        const res = await fetch('/api/logs')
+        if (!res.ok) { logBox.textContent = 'Error: ' + await res.text(); return }
+        const { logs } = await res.json()
+        const atBottom = logBox.scrollHeight - logBox.scrollTop <= logBox.clientHeight + 20
+        logBox.textContent = logs.join('\n')
+        if (atBottom) logBox.scrollTop = logBox.scrollHeight
+      } catch (e) {
+        logBox.textContent = 'Failed: ' + e.message
+      }
+    }
+
+    let countdown = 15
+    const nextRefresh = document.getElementById('next-refresh')
+
+    function tick() {
+      countdown--
+      nextRefresh.textContent = `Next refresh in ${countdown}s`
+      if (countdown <= 0) {
+        countdown = 15
+        fetchStatus()
+        fetchLogs()
+      }
+    }
+
+    document.getElementById('btn-start') .addEventListener('click', () => callApi('/api/start'))
+    document.getElementById('btn-stop')  .addEventListener('click', () => callApi('/api/stop'))
+    document.getElementById('btn-status').addEventListener('click', () => { fetchStatus(); countdown = 15 })
+    document.getElementById('btn-logs')  .addEventListener('click', () => { fetchLogs();  countdown = 15 })
+
+    // Initial load + live refresh every 15s
+    fetchStatus()
+    fetchLogs()
+    setInterval(tick, 1000)
+  </script>
+
+</body>
+</html>
