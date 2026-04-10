@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard</title>
+        <link rel="stylesheet" href="style.css">
+        <script
+            src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+        <script
+            src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <div class="sidebar">
+            <div class="action-buttons">
+                <a id="start-btn"><iconify-icon
+                        icon="mdi:play"></iconify-icon>Start</a>
+                <a id="stop-btn"><iconify-icon
+                        icon="mdi:stop"></iconify-icon>Stop</a>
+                <a id="restart-btn"><iconify-icon
+                        icon="tabler:reload"></iconify-icon>Restart</a>
+            </div>
+            <div class="divider"></div>
+            <div class="health-box">
+                <a class="status-link">
+                    <div class="health-top">
+                        <span class="health-label">Status</span>
+                        <iconify-icon icon="mdi:circle-outline" class="health-icon"></iconify-icon>
+                    </div>
+                    <span class="health-value" id="statusDisplay">—</span>
+                </a>
+                <a class="uptime-link">
+                    <div class="health-top">
+                        <span class="health-label">Uptime</span>
+                        <iconify-icon icon="mdi:clock-outline" class="health-icon"></iconify-icon>
+                    </div>
+                    <span class="health-value" id="uptimeDisplay">—</span>
+                </a>
+                <a class="memory-link">
+                    <div class="health-top">
+                        <span class="health-label">Memory</span>
+                        <iconify-icon icon="mdi:memory" class="health-icon"></iconify-icon>
+                    </div>
+                    <span class="health-value" id="memoryDisplay">—</span>
+                </a>
+                <a class="cpu-link">
+                    <div class="health-top">
+                        <span class="health-label">CPU</span>
+                        <iconify-icon icon="mdi:cpu-64-bit" class="health-icon"></iconify-icon>
+                    </div>
+                    <span class="health-value" id="cpuDisplay">—</span>
+                </a>
+            </div>
+        </div>
+        <div class="logs">
+            <div class="logs-box">
+                <div class="logs-display"> </div>
+            </div>
+        </div>
+        <div id="toast-container"></div>
+        <div class="watermark">© Copyrights D3ltaa</div>
+    </body>
+    <script src="index.js"></script>
+</html>

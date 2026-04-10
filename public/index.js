@@ -1,88 +1,114 @@
-const logBox = $('.logs-display')[0]
-const startBtn = $('#start-btn')
-const stopBtn = $('#stop-btn')
-const restartBtn = $('#restart-btn')
-const memoryDisplay = $('#memoryDisplay')
-const cpuDisplay = $('#cpuDisplay')
-const uptimeDisplay = $('#uptimeDisplay')
-const statusDisplay = $('#statusDisplay')
-startBtn.click(() => { callApi('/api/start') })
-stopBtn.click(() => callApi('/api/stop'))
-restartBtn.click(() => callApi('/api/restart'))
+let express = require('express')
+const dotenv = require('dotenv')
+const pm2 = require('pm2')
+const cookieParser = require('cookie-parser')
+const crypto = require('crypto')
+dotenv.config()
+let app = express()
+app.use(express.static('public'))
+app.use(express.urlencoded({ extended: false }))
+app.use(cookieParser())
+let port = process.env.Port || 3000
+const OTP = Math.random().toString(36).slice(2, 8).toUpperCase()
+const SESSION_TOKEN = crypto.randomBytes(32).toString('hex')
+console.log(`\n🔑  Panel password: ${OTP}\n`)
 
-$(document).ready(async () => {
-    await fetchLogs()
-    await fetchStatus()
-    setInterval(fetchStatus, 30000)
-    setInterval(fetchLogs, 30000)
+function requireAuth(req, res, next) {
+    if (req.cookies?.session === SESSION_TOKEN) return next()
+    res.redirect('/')
+}
+
+app.get('/', (req, res) => {
+    if (req.cookies?.session === SESSION_TOKEN) return res.redirect('/panel')
+        res.sendFile(__dirname + '/public/index.html')
 })
 
-async function fetchLogs() {
-    try {
-        const res = await fetch('/api/logs')
-        if (!res.ok) { logBox.textContent = 'Error: ' + await res.text(); return }
-        const { logs } = await res.json()
-        const atBottom = logBox.scrollHeight - logBox.scrollTop <= logBox.clientHeight + 20
-        logBox.innerHTML = logs.map(l => `<div>${l.replace(/</g, '&lt;')}</div>`).join('')
-        if (atBottom) logBox.scrollTop = logBox.scrollHeight
-    } catch (e) {
-        logBox.textContent = 'Failed: ' + e.message
+app.post('/auth', (req, res) => {
+    if (req.body.otp === OTP) {
+        res.cookie('session', SESSION_TOKEN, { httpOnly: true, sameSite: 'strict' })
+        return res.redirect('/panel')
     }
-}
+    res.redirect('/?error=1')
+})
 
+app.get('/panel', requireAuth, (req, res) => {
+    res.sendFile(__dirname + '/public/panel.html')
+})
 
-async function callApi(url, method = 'POST') {
-    try {
-        const res = await fetch(url, { method })
-        const text = await res.text()
-        toast(text, res.ok ? 'success' : 'error')
-        if (res.ok) {
-            fetchLogs()
-            setTimeout(fetchStatus, 1000)
+app.get('/api/status',(req,res)=>{
+    pm2.connect((err) => {
+        if (err) return res.status(500).send(err.message)
+        const describe = (attempt) => {
+            pm2.describe('bot', (err, list) => {
+                if (err) { pm2.disconnect(); return res.status(500).send(err.message) }
+                if (!list.length) { pm2.disconnect(); return res.status(404).send('Process not found') }
+                const p = list[0]
+                if (attempt < 3 && p.pm2_env.status === 'online' && p.monit.memory === 0) {
+                    return setTimeout(() => describe(attempt + 1), 500)
+                }
+                pm2.disconnect()
+                res.send({
+                    status: p.pm2_env.status,
+                    uptime: p.pm2_env.pm_uptime,
+                    memory: p.monit.memory,
+                    cpu: p.monit.cpu,
+                })
+            })
         }
-    } catch (e) {
-        toast('Request failed: ' + e.message, 'error')
-    }
-}
+        describe(0)
+    })
+})
 
-async function fetchStatus() {
-    try {
-        const res = await fetch('/api/status')
-        if (!res.ok) { applyStatus(null); return }
-        const data = await res.json()
-        applyStatus(data)
-    } catch { applyStatus(null) }
-}
+app.post('/api/start',(req,res)=>{
+    pm2.connect((err) => {
+        if (err) return res.status(500).send(err.message)
+        pm2.start('./bot/bot.js', (err) => {
+            pm2.disconnect()
+            if (err) return res.status(500).send(err.message)
+            res.send('Bot Started')
+        })
+    })
+})
 
-async function applyStatus(data) {
-    statusDisplay.text(data ? data.status : '—')
-    uptimeDisplay.text(formatUptime(data?.uptime))
-    memoryDisplay.text(formatMemory(data?.memory))
-    cpuDisplay.text(data ? data.cpu.toFixed(1) + ' %' : '—')
-}
+app.post('/api/restart',(req,res)=>{
+    pm2.connect((err) => {
+        if (err) return res.status(500).send(err.message)
+        pm2.reload('bot', (err) => {
+            pm2.disconnect()
+            if (err) return res.status(500).send(err.message)
+            res.send('Bot Restarted')
+        })
+    })
+})
+app.post('/api/stop',(req,res)=>{
+    pm2.connect((err) => {
+        if (err) return res.status(500).send(err.message)
+        pm2.stop('./bot/bot.js', (err) => {
+            pm2.disconnect()
+            if (err) return res.status(500).send(err.message)
+            res.send('Bot Stopped')
+        })
+    })
+})
 
+app.get('/api/logs',(_, res)=>{
+    pm2.connect((err) => {
+        if (err) return res.status(500).send(err.message)
+        pm2.describe('bot', (err, list) => {
+            pm2.disconnect()
+            if (err) return res.status(500).send(err.message)
+            if (!list.length) return res.status(404).send('Process not found')
+            const logPath = list[0].pm2_env.pm_out_log_path
+            require('fs').readFile(logPath, 'utf8', (err, data) => {
+                if (err) return res.status(500).send(err.message)
+                const lines = data.trim().split('\n').slice(-50)
+                res.json({ logs: lines })
+            })
+        })
+    })
+})
 
-function formatUptime(ms) {
-    if (!ms) return '—'
-    const s = Math.floor((Date.now() - ms) / 1000)
-    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60
-    return h ? `${h}h ${m}m` : m ? `${m}m ${sec}s` : `${sec}s`
-}
+app.listen(port,()=>{
+    console.log(`Server is running on port ${port}`)
+})
 
-function toast(message, type = 'success') {
-    const t = document.createElement('div')
-    t.className = `toast toast-${type}`
-    t.innerHTML = `<iconify-icon icon="${type === 'success' ? 'mdi:check-circle' : 'mdi:alert-circle'}"></iconify-icon><span>${message}</span>`
-    document.getElementById('toast-container').appendChild(t)
-    requestAnimationFrame(() => t.classList.add('toast-show'))
-    setTimeout(() => {
-        t.classList.remove('toast-show')
-        t.addEventListener('transitionend', () => t.remove())
-    }, 3000)
-}
-
-function formatMemory(bytes) {
-    if (bytes == null) return '—'
-    if (bytes === 0) return '0 MB'
-    return (bytes / 1024 / 1024).toFixed(1) + ' MB'
-}
