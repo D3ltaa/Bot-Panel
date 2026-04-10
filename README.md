@@ -1,6 +1,6 @@
 # BotPanel
 
-A web-based control panel for managing a Discord bot process via [PM2](https://pm2.keymetrics.io/). Monitor status, start/stop the bot, and view logs — all from a browser dashboard.
+A web-based control panel for managing a Discord bot process via [PM2](https://pm2.keymetrics.io/). Monitor status, start/stop the bot, and view logs all from a browser dashboard.
 
 ## Features
 
