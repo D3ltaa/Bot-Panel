@@ -1,0 +1,300 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap');
+
+:root {
+    --bg: #111214;
+    --card-primary: #1e2025;
+    --card-secondary: #181a1e;
+    --text-heading: #f0f2f5;
+    --text-body: #9aa0ab;
+    --text-muted: #555a63;
+    --surface: #272b33;
+    --border: #2a2e38;
+    --font: 'Outfit', sans-serif;
+    --font-display: 'Outfit', sans-serif;
+}
+
+body {
+    -webkit-user-select: none;
+    -moz-user-select: -moz-none;
+    -ms-user-select: none;
+    user-select: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    gap: 20px;
+    background-color: var(--bg);
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
+    background-size: 28px 28px;
+    font-family: var(--font);
+    font-weight: 700;
+}
+
+.sidebar {
+    width: 300px;
+    height: 600px;
+    background-color: var(--card-primary);
+    border-radius: 20px;
+    box-shadow: 0 4px 12px var(--accent-glow);
+    display: flex;
+    flex-direction: column;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 20px;
+}
+
+.action-buttons a {
+    padding: 20px 20px;
+    font-size: 16px;
+    font-weight: 600;
+     border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.action-buttons a iconify-icon {
+    margin-right: 6px;
+    vertical-align: middle;
+    font-weight: 800;
+}
+
+#start-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+
+}
+
+#stop-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+
+}
+
+#restart-btn {
+    background-color: #ff9800;
+    color: white;
+    border: none;
+   
+}
+
+.health-box{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 20px 20px;
+    flex: 1;
+}
+
+.health-box a {
+    border-radius: 10px;
+    background-color: var(--card-secondary);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 12px 15px;
+    cursor: default;
+}
+
+.health-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.health-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.health-icon {
+    font-size: 22px;
+    color: var(--text-muted);
+}
+
+.health-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-heading);
+}
+
+.divider {
+    height: 1px;
+    background-color: var(--border);
+    margin: 0px 0px 20px 0px;
+}
+@media (max-width: 1180px) {
+    body {
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 20px 0;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .sidebar {
+        width: 100%;
+        max-width: 760px;
+        height: auto;
+    }
+
+    .logs {
+        width: 100%;
+        max-width: 760px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 16px;
+        padding-top: max(16px, env(safe-area-inset-top));
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+        gap: 12px;
+        box-sizing: border-box;
+    }
+
+    .sidebar {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        border-radius: 16px;
+    }
+
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding: 14px;
+    }
+
+    .action-buttons a {
+        padding: 14px 8px;
+        font-size: 13px;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        min-height: 64px;
+        text-align: center;
+    }
+
+    .action-buttons a iconify-icon {
+        margin-right: 0;
+        font-size: 20px;
+    }
+
+    .health-box {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 0 14px 14px;
+        flex: none;
+    }
+
+    .health-box a {
+        flex: none;
+        min-height: 56px;
+        padding: 0 12px;
+        font-size: 13px;
+        border-radius: 10px;
+        border-left: 3px solid var(--border);
+    }
+
+    .logs {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        border-radius: 16px;
+    }
+
+    .logs-box {
+        height: auto;
+        margin: 8px;
+        border-radius: 12px;
+    }
+
+    .logs-display {
+        height: 380px;
+        padding: 14px;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+}
+
+.logs {
+    width: 800px;
+    height: 600px;
+    background-color: var(--card-primary);
+    border-radius: 20px;
+    box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.logs-box {
+    background-color: var(--card-secondary);
+    height: 580px;
+    border-radius: 15px;
+    margin: 10px;
+    color: var(--text-body);
+}
+
+.logs-display {
+    padding: 20px;
+    height: 540px;
+    overflow-y: auto;
+    font-family: var(--font-display);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+#toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 999;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    background-color: var(--card-primary);
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+}
+
+.toast.toast-show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-success { border-left: 3px solid #4CAF50; }
+.toast-success iconify-icon { color: #4CAF50; font-size: 18px; }
+
+.toast-error { border-left: 3px solid #f44336; }
+.toast-error iconify-icon { color: #f44336; font-size: 18px; }

@@ -1,17 +1,24 @@
 {
-  "name": "botpanel",
+  "name": "bot-panel",
   "version": "1.0.0",
-  "description": "",
+  "description": "A self-hosted Discord bot control panel with PM2 process management",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "node --watch index.js"
   },
-  "author": "",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "!Delta!",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^14.26.2",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.0",
     "express": "^5.2.1",
     "pm2": "^6.0.14"
+  },
+  "optionalDependencies": {
+    "discord.js": "^14.26.2"
   }
 }
