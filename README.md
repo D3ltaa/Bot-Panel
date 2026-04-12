@@ -26,7 +26,6 @@ BotPanel/
 │   └── bot.js        # Discord bot (managed by PM2 as "bot")
 ├── public/
 │   ├── panel.html    # Dashboard UI
-│   ├── panel2.html
 │   └── style.css
 └── .env              # Environment variables (not committed)
 ```
